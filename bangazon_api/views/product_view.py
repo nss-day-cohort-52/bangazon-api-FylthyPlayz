@@ -166,11 +166,14 @@ class ProductView(ViewSet):
         order = request.query_params.get('order_by', None)
         direction = request.query_params.get('direction', None)
         name = request.query_params.get('name', None)
+        location = request.query_params.get('location', None)
+        min_price = request.query_params.get('min_price', None)
+
 
         if number_sold:
             products = products.annotate(
-                order_count=Count('orders')
-            ).filter(order_count__lt=number_sold)
+                product_count=Count('products')
+            ).filter(product_count=number_sold)
 
         if order is not None:
             order_filter = f'-{order}' if direction == 'desc' else order
@@ -180,7 +183,13 @@ class ProductView(ViewSet):
             products = products.filter(category__id=category)
 
         if name is not None:
-            products = products.filter(name__icontains=name)
+            products = products.filter(name__contains=name)
+
+        if location is not None:
+            products = products.filter(location__contains=location)
+        
+        if min_price is not None:
+            products = products.filter(price__gte=min_price)
 
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)
@@ -251,6 +260,7 @@ class ProductView(ViewSet):
             product = Product.objects.get(pk=pk)
             order = Order.objects.get(
                 user=request.auth.user, completed_on=None)
+            order.products.remove(product)
             return Response(None, status=status.HTTP_204_NO_CONTENT)
         except Product.DoesNotExist as ex:
             return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
