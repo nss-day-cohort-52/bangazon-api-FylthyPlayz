@@ -46,6 +46,30 @@ class ProductTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIsNotNone(response.data['id'])
 
+    def test_delete_product(self):
+        """
+        Ensure we can create a new product.
+        """
+        category = Category.objects.first()
+
+        product = Product()
+        product.name = self.faker.ecommerce_name()
+        product.price = random.randint(50, 1000)
+        product.description = self.faker.paragraph()
+        product.quantity = random.randint(2, 20)
+        product.location = random.choice(STATE_NAMES)
+        product.image_path = ""
+        product.category_id = category.id
+        product.store_id = self.user1.store.id
+
+        product.save()
+
+        response = self.client.delete(f'/api/products/{product.id}')
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.get(f'/api/products/{product.id}')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
     def test_update_product(self):
         """

@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.db.models import Count
+from django.db.models import Count, Q
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import status
@@ -172,8 +172,8 @@ class ProductView(ViewSet):
 
         if number_sold:
             products = products.annotate(
-                product_count=Count('products')
-            ).filter(product_count=number_sold)
+                order_count=Count('products', filter=~Q(orders__payment_type=None))
+            ).filter(order_count__gte=number_sold)
 
         if order is not None:
             order_filter = f'-{order}' if direction == 'desc' else order
@@ -187,7 +187,7 @@ class ProductView(ViewSet):
 
         if location is not None:
             products = products.filter(location__contains=location)
-        
+       
         if min_price is not None:
             products = products.filter(price__gte=min_price)
 
@@ -322,6 +322,13 @@ class ProductView(ViewSet):
             recommendation.delete()
 
             return Response(None, status=status.HTTP_204_NO_CONTENT)
+       
+        if request.method == "GET":
+            recommendation = Recommendation.objects.get(
+                product=product,
+                recommender=request.auth.user
+            )
+            return Response(None, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
         method='POST',
@@ -353,3 +360,21 @@ class ProductView(ViewSet):
             )
 
         return Response({'message': 'Rating added'}, status=status.HTTP_201_CREATED)
+
+    # @action(methods=['post'], detail=True)
+    # def like (self, request, pk):
+    #     """Post request for a user to like a product"""
+    #     product = Product.objects.get(pk=pk)
+    #     Like.objects.create(
+    #         customer=request.auth.user,
+    #         product=product)
+    #     return Response({'message': 'Product liked'}, status=status.HTTP_201_CREATED)
+
+    # @action(methods=['delete'], detail=True)
+    # def unlike (self, request, pk):
+    #     product = Product.objects.get(pk=pk)
+    #     like = Like.objects.get(
+    #         customer=request.auth.user,
+    #         product=product)
+    #     like.delete()
+    #     return Response({'message': 'Get that mess out of here'}, status=status.HTTP_204_NO_CONTENT)

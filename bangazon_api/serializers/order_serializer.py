@@ -15,4 +15,4 @@ class UpdateOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ('paymentTypeId', 'orderId')
+        fields = ('paymentTypeId', 'id')
