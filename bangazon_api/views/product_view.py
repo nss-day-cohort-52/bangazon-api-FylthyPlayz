@@ -8,10 +8,12 @@ from rest_framework.exceptions import ValidationError
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from bangazon_api.helpers import STATE_NAMES
-from bangazon_api.models import Product, Store, Category, Order, Rating, Recommendation
+from bangazon_api.models import Product, Store, Category, Order, Rating, Recommendation, Like
 from bangazon_api.serializers import (
-    ProductSerializer, CreateProductSerializer, MessageSerializer,
-    AddProductRatingSerializer, AddRemoveRecommendationSerializer)
+    ProductSerializer, CreateProductSerializer, MessageSerializer, 
+    AddProductRatingSerializer, AddRemoveRecommendationSerializer,)
+from bangazon_api.serializers.product_serializer import LikeSerializer
+
 
 
 class ProductView(ViewSet):
@@ -173,7 +175,7 @@ class ProductView(ViewSet):
         if number_sold:
             products = products.annotate(
                 order_count=Count('products', filter=~Q(orders__payment_type=None))
-            ).filter(order_count__gte=number_sold)
+            ).filter(order_count__gt=number_sold)
 
         if order is not None:
             order_filter = f'-{order}' if direction == 'desc' else order
@@ -361,20 +363,35 @@ class ProductView(ViewSet):
 
         return Response({'message': 'Rating added'}, status=status.HTTP_201_CREATED)
 
-    # @action(methods=['post'], detail=True)
-    # def like (self, request, pk):
-    #     """Post request for a user to like a product"""
-    #     product = Product.objects.get(pk=pk)
-    #     Like.objects.create(
-    #         customer=request.auth.user,
-    #         product=product)
-    #     return Response({'message': 'Product liked'}, status=status.HTTP_201_CREATED)
+    @action(methods=['post'], detail=True)
+    def like (self, request, pk):
+        """Post request for a user to like a product"""
+        try:
+            product = Product.objects.get(pk=pk)
+            Like.objects.create(
+                customer=request.auth.user,
+                product=product)
+            return Response({'message': 'Product liked'}, status=status.HTTP_201_CREATED)
+        except Product.DoesNotExist as ex:
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
 
-    # @action(methods=['delete'], detail=True)
-    # def unlike (self, request, pk):
-    #     product = Product.objects.get(pk=pk)
-    #     like = Like.objects.get(
-    #         customer=request.auth.user,
-    #         product=product)
-    #     like.delete()
-    #     return Response({'message': 'Get that mess out of here'}, status=status.HTTP_204_NO_CONTENT)
+    @action(methods=['delete'], detail=True)
+    def unlike (self, request, pk):
+        try:
+            product = Product.objects.get(pk=pk)
+            like = Like.objects.get(
+                customer=request.auth.user,
+                product=product)
+            like.delete()
+            return Response({'message': 'Get that mess out of here'}, status=status.HTTP_204_NO_CONTENT)
+        except Product.DoesNotExist as ex:
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(methods=['GET'], detail=False)
+    def liked(self, request):
+        try:
+            likes = Like.objects.filter(customer=request.auth.user)
+            serializer = LikeSerializer(likes, many=True)
+            return Response({'message': serializer.data})
+        except Like.DoesNotExist as ex:
+            return Response({'message': ex.args[0]}, status=status.HTTP_404_NOT_FOUND)

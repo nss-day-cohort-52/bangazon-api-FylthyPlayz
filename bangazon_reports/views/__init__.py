@@ -1,0 +1,2 @@
+from bangazon_reports.views.orders.completedorders import CompletedOrdersList
+from bangazon_reports.views.orders.incompleteorders import IncompleteOrders

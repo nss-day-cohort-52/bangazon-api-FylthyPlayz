@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from bangazon_api.helpers import STATE_NAMES
 from bangazon_api.models import Category
 from bangazon_api.models.product import Product
+from bangazon_api.models import Rating
 
 
 class ProductTests(APITestCase):
@@ -99,3 +100,22 @@ class ProductTests(APITestCase):
         response = self.client.get('/api/products')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), Product.objects.count())
+
+    def test_rating_product(self):
+        product = Product.objects.first()
+        rating = {
+            "score": 1,
+            "review": "it sucks"
+        }
+        url = f'/api/products/{product.id}/rate-product'
+        response = self.client.post(url, rating, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.get('/api/products/{product.id}')
+
+        total_rating= 0
+        for rating in response.data['ratings']:
+            total_rating += rating['score']
+        average_rating = total_rating / len(response.data['ratings'])
+
+        self.assertEqual(response.data['average_ratings'], average_rating)
