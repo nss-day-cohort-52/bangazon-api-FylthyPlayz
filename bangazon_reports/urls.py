@@ -1,5 +1,5 @@
 from django.urls import path
-from bangazon_reports.views.customers.favoritesellers import FavoriteSellersList 
+from bangazon_reports.views.customers.favoritesellers import FavoriteSellersList
 from bangazon_reports.views.orders.completedorders import CompletedOrdersList
 from bangazon_reports.views.orders.incompleteorders import IncompleteOrders
 from bangazon_reports.views.products.expensiveproducts import ExpensiveProductsList

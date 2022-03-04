@@ -42,14 +42,14 @@ class FavoriteSellersList(View):
                 )
                 
                 if user_dict:
-                    user_dict['store'].append(store)
+                    user_dict['stores'].append(store)
                 else:
                     customers.append({
                         "user_id": row['user_id'],
                         "full_name": row['full_name'],
-                        "stores": row['store']
+                        "stores": [store]
                     })
-
+                print(customers)
         template = 'favorite_sellers.html'
 
         context = {

@@ -8,14 +8,16 @@
   <body>
     <h1>Sellers favorite stores </h1>
 
-    {% for customer in customers %}
-        <h2>{{ customer.customer_id }}</h2> 
+    {% for customer in favorite_sellers %}
+        <h2>{{ customer.user_id }}</h2> 
         <li>
            Customer: {{customer.full_name}} <br/>
-    {% for sore in customer.stores%}
-           Favorite Store: {{store.name}} <br/>
-           
         </li>
+    {% for store in customer.stores %}
+        <li>
+           Favorite Store: {{store.name}} <br/>
+        </li>
+    {% endfor %}    
     {% endfor %}
   </body>
 </html>
