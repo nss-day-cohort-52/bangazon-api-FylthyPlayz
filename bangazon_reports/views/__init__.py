@@ -1,2 +1,5 @@
 from bangazon_reports.views.orders.completedorders import CompletedOrdersList
 from bangazon_reports.views.orders.incompleteorders import IncompleteOrders
+from bangazon_reports.views.products.expensiveproducts import ExpensiveProductsList
+from bangazon_reports.views.products.inexpensiveproducts import InexpensiveProductsList
+from bangazon_reports.views.customers.favoritesellers import FavoriteSellersList
